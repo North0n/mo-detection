@@ -56,6 +56,19 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  Future<void> _captureImage() async {
+    final pickedFile = await ImagePicker().pickImage(
+      source: ImageSource.camera,
+    );
+    if (pickedFile != null) {
+      setState(() {
+        _image = File(pickedFile.path);
+        _processedImage = null; // Reset processed image
+      });
+      _runDetection();
+    }
+  }
+
   Future<void> _runDetection() async {
     if (_image == null) return;
     final processed = await detector.detectedImage(_image!);
@@ -72,13 +85,37 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            _image != null
+                ? Image.file(
+                  _image!,
+                  width: ObjectDetector.imageSize.toDouble(),
+                  height: ObjectDetector.imageSize.toDouble(),
+                  fit: BoxFit.cover,
+                )
+                : SizedBox(
+                  width: ObjectDetector.imageSize.toDouble(),
+                  height: ObjectDetector.imageSize.toDouble(),
+                  child: Center(child: Text("No image selected")),
+                ),
+            SizedBox(height: 10),
             _processedImage != null
                 ? Image.memory(_processedImage!)
-                : _image != null
-                ? Image.file(_image!)
                 : Text("Pick an image to detect objects"),
             SizedBox(height: 20),
-            ElevatedButton(onPressed: _pickImage, child: Text("Pick Image")),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton(
+                  onPressed: _pickImage,
+                  child: Text("Pick Image"),
+                ),
+                SizedBox(width: 10),
+                ElevatedButton(
+                  onPressed: _captureImage,
+                  child: Text("Take Photo"),
+                ),
+              ],
+            ),
           ],
         ),
       ),
