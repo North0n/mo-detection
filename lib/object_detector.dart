@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math';
 import 'package:flutter/services.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
 import 'package:image/image.dart' as img;
@@ -155,50 +156,45 @@ class ObjectDetector {
     }
 
     // Apply Non-Maximum Suppression (NMS)
-    return _applyNMS(results, iouThreshold);
+    return _applyNMS(results, iouThreshold, 0.5);
   }
 
-  double _iou(List<double> boxA, List<double> boxB) {
-    double xA = (boxA[0] - boxA[2] / 2).clamp(
-      (boxB[0] - boxB[2] / 2).toDouble(),
-      (boxB[0] + boxB[2] / 2).toDouble(),
-    );
-    double yA = (boxA[1] - boxA[3] / 2).clamp(
-      (boxB[1] - boxB[3] / 2).toDouble(),
-      (boxB[1] + boxB[3] / 2).toDouble(),
-    );
-    double xB = (boxA[0] + boxA[2] / 2).clamp(
-      (boxB[0] - boxB[2] / 2).toDouble(),
-      (boxB[0] + boxB[2] / 2).toDouble(),
-    );
-    double yB = (boxA[1] + boxA[3] / 2).clamp(
-      (boxB[1] - boxB[3] / 2).toDouble(),
-      (boxB[1] + boxB[3] / 2).toDouble(),
-    );
+  double _iou(List<double> bbox1, List<double> bbox2) {
+    double x1 = max(bbox1[0] - bbox1[2] / 2, bbox2[0] - bbox2[2] / 2);
+    double y1 = max(bbox1[1] - bbox1[3] / 2, bbox2[1] - bbox2[3] / 2);
+    double x2 = min(bbox1[0] + bbox1[2] / 2, bbox2[0] + bbox2[2] / 2);
+    double y2 = min(bbox1[1] + bbox1[3] / 2, bbox2[1] + bbox2[3] / 2);
 
-    if (xB <= xA || yB <= yA) return 0.0;
+    double intersection = max(0, x2 - x1) * max(0, y2 - y1);
+    double area1 = bbox1[2] * bbox1[3];
+    double area2 = bbox2[2] * bbox2[3];
+    double unionArea = area1 + area2 - intersection;
 
-    double interArea = (xB - xA) * (yB - yA);
-    double boxAArea = boxA[2] * boxA[3];
-    double boxBArea = boxB[2] * boxB[3];
-
-    return interArea / (boxAArea + boxBArea - interArea);
+    return unionArea > 0 ? intersection / unionArea : 0;
   }
 
   List<Map<String, dynamic>> _applyNMS(
     List<Map<String, dynamic>> detections,
     double iouThreshold,
+    double sigma,
   ) {
-    detections.sort((a, b) => b["confidence"].compareTo(a["confidence"]));
+    // Sort detections by confidence in descending order
+    detections.sort((a, b) => b['confidence'].compareTo(a['confidence']));
+
     List<Map<String, dynamic>> finalDetections = [];
-
     while (detections.isNotEmpty) {
-      Map<String, dynamic> bestDetection = detections.removeAt(0);
-      finalDetections.add(bestDetection);
+      var best = detections.removeAt(0);
+      finalDetections.add(best);
 
-      detections.removeWhere(
-        (det) => _iou(bestDetection["bbox"], det["bbox"]) > iouThreshold,
-      );
+      for (var detection in detections) {
+        if (best['label'] == detection['label']) {
+          double iouValue = _iou(best['bbox'], detection['bbox']);
+          if (iouValue > iouThreshold) {
+            detection['confidence'] *= exp(-pow(iouValue, 2) / sigma);
+          }
+        }
+      }
+      detections.removeWhere((d) => d['confidence'] < 0.01);
     }
 
     return finalDetections;
