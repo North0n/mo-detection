@@ -31,13 +31,18 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final ObjectDetector detector = ObjectDetector(0.25, 0.45, 'assets/models/svhn.tflite');
+  static const String svhnModel = 'assets/models/svhn.tflite';
+  static const String mnistModel = 'assets/models/mnist.tflite';
+
+  late ObjectDetector detector;
   File? _image;
   Uint8List? _processedImage;
+  bool isSvhnModel = true;
 
   @override
   void initState() {
     super.initState();
+    detector = ObjectDetector(0.25, 0.45, svhnModel);
     detector.initialize().then((_) {
       setState(() {});
     });
@@ -77,26 +82,45 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  void _toggleModel() {
+    setState(() {
+      isSvhnModel = !isSvhnModel;
+      _image = null;
+      _processedImage = null;
+      detector = ObjectDetector(0.25, 0.45, isSvhnModel ? svhnModel : mnistModel);
+      detector.initialize();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Object Detection')),
+      appBar: AppBar(
+        title: Text('Object Detection'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.swap_horiz),
+            onPressed: _toggleModel,
+            tooltip: 'Switch Model',
+          ),
+        ],
+      ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             _image != null
                 ? Image.file(
-                  _image!,
-                  width: ObjectDetector.imageSize.toDouble(),
-                  height: ObjectDetector.imageSize.toDouble(),
-                  fit: BoxFit.cover,
-                )
+              _image!,
+              width: ObjectDetector.imageSize.toDouble(),
+              height: ObjectDetector.imageSize.toDouble(),
+              fit: BoxFit.cover,
+            )
                 : SizedBox(
-                  width: ObjectDetector.imageSize.toDouble(),
-                  height: ObjectDetector.imageSize.toDouble(),
-                  child: Center(child: Text("No image selected")),
-                ),
+              width: ObjectDetector.imageSize.toDouble(),
+              height: ObjectDetector.imageSize.toDouble(),
+              child: Center(child: Text("No image selected")),
+            ),
             SizedBox(height: 10),
             _processedImage != null
                 ? Image.memory(_processedImage!)
@@ -115,6 +139,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Text("Take Photo"),
                 ),
               ],
+            ),
+            SizedBox(height: 20),
+            Text(
+              "Current Model: ${isSvhnModel ? "SVHN" : "MNIST"}",
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
           ],
         ),
