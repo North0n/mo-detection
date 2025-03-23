@@ -13,7 +13,7 @@ displayed and photo with detected bounding boxes and corresponding labels
 ## Examples
 
 SVHN model prediction example:
-![](assets\readme\images\svhn.jpg)
+![](./assets/readme/images/svhn.jpg)
 
 MNIST model prediction example:
-![](assets\readme\images\mnist.jpg)
+![](./assets/readme/images/mnist.jpg)
