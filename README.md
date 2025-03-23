@@ -1,16 +1,19 @@
-# test_detection
+# Application for detection house numbers
+## Description
 
-A new Flutter project.
+There are choice between two models:
+- SVHN learned
+- MNIST learned
 
-## Getting Started
+Both have YOLO architecture and are learned using [Ultralytics hub](https://hub.ultralytics.com/)
 
-This project is a starting point for a Flutter application.
+There are options for picking stored image or taking photo. After that original photo is
+displayed and photo with detected bounding boxes and corresponding labels
 
-A few resources to get you started if this is your first Flutter project:
+## Examples
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+SVHN model prediction example:
+![](assets\readme\images\svhn.jpg)
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+MNIST model prediction example:
+![](assets\readme\images\mnist.jpg)
