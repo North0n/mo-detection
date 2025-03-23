@@ -31,7 +31,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final ObjectDetector detector = ObjectDetector(0.25, 0.45);
+  final ObjectDetector detector = ObjectDetector(0.25, 0.45, 'assets/models/svhn.tflite');
   File? _image;
   Uint8List? _processedImage;
 

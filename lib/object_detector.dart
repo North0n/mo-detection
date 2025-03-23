@@ -15,14 +15,15 @@ class ObjectDetector {
 
   final double confidenceThreshold;
   final double iouThreshold;
+  final String datasetName;
 
-  ObjectDetector(this.confidenceThreshold, this.iouThreshold);
+  ObjectDetector(this.confidenceThreshold, this.iouThreshold, this.datasetName);
 
   Future<void> initialize() async {
-    _interpreter = await Interpreter.fromAsset('assets/models/svhn.tflite');
+    _interpreter = await Interpreter.fromAsset(datasetName);
 
     // Load labels
-    _labels = await rootBundle.loadString('assets/models/svhn.txt').then((
+    _labels = await rootBundle.loadString('assets/models/labels.txt').then((
       content,
     ) {
       return content.split("\n").where((line) => line.isNotEmpty).toList();

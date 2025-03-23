@@ -66,7 +66,8 @@ flutter:
     - assets/models/ssd_mobilenet.tflite
     - assets/models/labelmap.txt
     - assets/models/svhn.tflite
-    - assets/models/svhn.txt
+    - assets/models/mnist.tflite
+    - assets/models/labels.txt
   # assets:
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
